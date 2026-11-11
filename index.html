@@ -35,7 +35,13 @@
     animation:drift 26s ease-in-out infinite alternate;
   }
   @keyframes drift{to{background-position:30% 20%,-20% 30%,20% -10%,0 0}}
-  #hearts{position:fixed;inset:0;z-index:1;pointer-events:none;overflow:hidden}
+  /* her video, waving like a flag down the left, fading off to the right */
+  #flag,#flagR{position:fixed;inset:0;z-index:1;pointer-events:none}
+  #flag{opacity:.36}                        /* the clip is brightly lit — plain blending */
+  #flagR{opacity:.38;mix-blend-mode:screen} /* the photo is dark — 'screen' lifts it out */
+  /* the source clip itself: kept on the page (so browsers keep decoding it) but invisible */
+  #bgvid{position:fixed;left:0;top:0;width:2px;height:2px;opacity:.01;z-index:0;pointer-events:none}
+  #hearts{position:fixed;inset:0;z-index:2;pointer-events:none;overflow:hidden}
   .fh{position:absolute;bottom:-40px;font-size:18px;opacity:0;animation:rise linear forwards;will-change:transform,opacity}
   @keyframes rise{
     0%{opacity:0;transform:translateY(0) scale(.6)}
@@ -45,7 +51,7 @@
   #confetti{position:fixed;inset:0;z-index:40;pointer-events:none}
 
   /* ---------- stage ---------- */
-  #stage{position:relative;z-index:2;height:100%;width:100%;max-width:520px;margin:0 auto;
+  #stage{position:relative;z-index:3;height:100%;width:100%;max-width:520px;margin:0 auto;
     display:grid;place-items:center;padding:max(18px,env(safe-area-inset-top)) 20px max(22px,env(safe-area-inset-bottom))}
   .slide{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
     gap:18px;padding:26px 22px;text-align:center;
@@ -101,7 +107,8 @@
   .card .f{background:linear-gradient(145deg,rgba(255,255,255,.16),rgba(255,255,255,.05));
     box-shadow:inset 0 0 0 1px rgba(255,255,255,.22);font-size:22px}
   .card .b{background:linear-gradient(145deg,#ff9fb9,#e2487a);transform:rotateY(180deg);
-    font-family:var(--serif);font-size:13.5px;line-height:1.3;color:#2a0a17;padding:8px;font-weight:600}
+    font-family:var(--serif);font-size:12.5px;line-height:1.28;color:#2a0a17;padding:7px;font-weight:600}
+  .card.last{grid-column:2}
   .card.flip .f{transform:rotateY(-180deg)}
   .card.flip .b{transform:rotateY(0)}
 
@@ -140,6 +147,22 @@
   .hint{font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,244,247,.55)}
   .burst{position:fixed;z-index:35;pointer-events:none;font-size:20px;animation:burst .9s ease-out forwards}
   @keyframes burst{0%{opacity:1;transform:translate(-50%,-50%) scale(.4)}100%{opacity:0;transform:translate(-50%,-180%) scale(1.3)}}
+  /* ---------- the little joke ---------- */
+  #joke{position:fixed;z-index:45;left:50%;
+    bottom:calc(max(18px,env(safe-area-inset-bottom)) + 14px);
+    display:flex;align-items:center;gap:9px;
+    max-width:min(93vw,360px);padding:12px 17px;border-radius:20px;
+    font-family:var(--sans);font-size:13.5px;font-weight:500;line-height:1.35;color:#7d2a46;
+    background:linear-gradient(145deg,#fffdfb,#ffe4ee);
+    box-shadow:0 18px 44px rgba(0,0,0,.5),inset 0 1px 0 #fff;
+    opacity:0;pointer-events:none;transform:translate(-50%,26px) scale(.82);
+    transition:opacity .35s ease,transform .55s cubic-bezier(.2,1.6,.4,1)}
+  #joke.on{opacity:1;pointer-events:auto;cursor:pointer;transform:translate(-50%,0) scale(1)}
+  #joke::after{content:"";position:absolute;left:50%;bottom:-5px;width:12px;height:12px;
+    transform:translateX(-50%) rotate(45deg);background:#ffe4ee;border-radius:3px}
+  #joke span{white-space:nowrap}
+  #joke b{font-size:19px;animation:giggle 1.6s ease-in-out infinite}
+  @keyframes giggle{0%,100%{transform:rotate(-8deg) scale(1)}50%{transform:rotate(8deg) scale(1.12)}}
   .fade-in{animation:fadeUp .8s cubic-bezier(.22,1,.36,1) both}
   .d1{animation-delay:.15s}.d2{animation-delay:.3s}.d3{animation-delay:.45s}.d4{animation-delay:.6s}
   @keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
@@ -150,6 +173,10 @@
 </head>
 <body>
 <div id="bg"></div>
+<video id="bgvid" src="assets/doy-bg.mp4" muted loop playsinline autoplay preload="auto"
+       aria-hidden="true" tabindex="-1"></video>
+<canvas id="flag" aria-hidden="true"></canvas>
+<canvas id="flagR" aria-hidden="true"></canvas>
 <div id="hearts" aria-hidden="true"></div>
 <canvas id="confetti" aria-hidden="true"></canvas>
 
@@ -158,7 +185,7 @@
   <!-- ============ 0 · GATE ============ -->
   <section class="slide on" data-i="0">
     <div class="eyebrow fade-in">November 12 &nbsp;·&nbsp; a little something</div>
-    <h1 class="fade-in d1">For my<br>favourite<br>person</h1>
+    <h1 class="fade-in d1">Just because<br>you have a<br>cute smile</h1>
     <p class="small fade-in d2">Best with sound on. Tap anywhere for hearts.</p>
     <button class="btn pulse fade-in d3" data-go="1">Open it &nbsp;&#128151;</button>
   </section>
@@ -192,12 +219,13 @@
     <p class="small">Tap each one.</p>
     <!-- EDIT ME: change the back text of each card -->
     <div class="cards">
-      <button class="card"><i class="f">&#128522;</i><i class="b">your laugh</i></button>
+      <button class="card"><i class="f">&#128522;</i><i class="b">your laugh and smile</i></button>
       <button class="card"><i class="f">&#9728;&#65039;</i><i class="b">your kindness</i></button>
       <button class="card"><i class="f">&#127775;</i><i class="b">your stubborn heart</i></button>
-      <button class="card"><i class="f">&#127808;</i><i class="b">how safe you feel</i></button>
+      <button class="card"><i class="f">&#127800;</i><i class="b">how safe you feel</i></button>
       <button class="card"><i class="f">&#127925;</i><i class="b">your terrible singing</i></button>
-      <button class="card"><i class="f">&#128151;</i><i class="b">simply you</i></button>
+      <button class="card"><i class="f">&#127911;</i><i class="b">your good taste in music</i></button>
+      <button class="card last"><i class="f">&#128151;</i><i class="b">simply you</i></button>
     </div>
   </section>
 
@@ -241,6 +269,9 @@
 
 </main>
 
+<!-- EDIT ME: the little joke at the end -->
+<div id="joke" role="status"><span>You still owe me a lollipop tho</span><b>&#128514;</b></div>
+
 <div id="nav">
   <div class="hint" id="hint">swipe &nbsp;or&nbsp; tap next</div>
   <button class="btn" id="next">Next</button>
@@ -279,7 +310,7 @@
     nextBtn.textContent = (n===slides.length-2) ? 'Finish' : 'Next';
     hint.style.display = (n>=1 && n<=4) ? 'block' : 'none';
     if(n===5) resetCake();
-    if(n===6){ confettiBurst(); }
+    if(n===6){ confettiBurst(); showJoke(); } else { hideJoke(); }
   }
 
   // --- navigation ---
@@ -379,6 +410,131 @@
     if(e.target.closest('button')) return;
     tapHeart(e.clientX, e.clientY);
   });
+
+  // --- the little joke at the end ---
+  var joke = document.getElementById('joke'), jokeT = null;
+  function showJoke(){ clearTimeout(jokeT); jokeT = setTimeout(function(){ joke.classList.add('on'); }, 2300); }
+  function hideJoke(){ clearTimeout(jokeT); joke.classList.remove('on'); }
+  joke.addEventListener('click', function(e){ e.stopPropagation(); joke.classList.remove('on'); });
+
+  // --- her clip (left) and her photo (right), waving like flags in the wind ---
+  (function(){
+    var vid = document.getElementById('bgvid');
+    var img = new Image(), imgReady = false;
+    var STRIP = 4, dpr = 1, W = 0, H = 0, last = 0, running = false, sized = false;
+
+    img.onload = function(){ imgReady = true; boot(); };
+    img.src = 'assets/pretty.png';
+
+    vid.muted = true;                                  // Safari wants this set in JS too
+    // NB: don't gate on a 'loadeddata' listener — if the clip is already buffered that
+    // event has fired before this script runs, and the left banner would stay empty.
+    // Ask the element for its state on every frame instead.
+    function vidReady(){ return vid.readyState >= 2 && vid.videoWidth > 0; }
+    vid.addEventListener('loadeddata', boot);
+    function kick(){ if(reduce) return; var p = vid.play(); if(p && p.catch) p.catch(function(){}); }
+    kick();
+    addEventListener('pointerdown', kick);             // some phones only allow play after a tap
+    document.addEventListener('visibilitychange', function(){ if(!document.hidden) kick(); });
+
+    // the clip is letterboxed inside its frame — these are the picture's bounds, as
+    // fractions, so the crop holds whatever size the file is re-encoded at
+    var CROP = { x:0.028, y:0.103, w:0.945, h:0.593 };
+    function videoSource(){
+      if(reduce || !vidReady()) return null;
+      var vw = vid.videoWidth, vh = vid.videoHeight;
+      return { el:vid, sx:CROP.x*vw, sy:CROP.y*vh, sw:CROP.w*vw, sh:CROP.h*vh };
+    }
+    function photoSource(){
+      return imgReady ? { el:img, sx:0, sy:0, sw:img.width, sh:img.height } : null;
+    }
+
+    // side:  1 = hung from the left edge, fading right
+    //       -1 = hung from the right edge, fading left (the same cloth, mirrored)
+    function Flag(id, getSrc, side){
+      var cv = document.getElementById(id), fx = cv.getContext('2d');
+      var buf = document.createElement('canvas'), bx = buf.getContext('2d');
+      var bw = 0, bh = 0;
+      return {
+        resize: function(){
+          cv.width = Math.round(W*dpr); cv.height = Math.round(H*dpr);
+          cv.style.width = W+'px'; cv.style.height = H+'px';
+        },
+        draw: function(t){
+          fx.setTransform(dpr,0,0,dpr,0,0);
+          fx.clearRect(0,0,W,H);
+          var src = getSrc();
+          if(!src) return;
+
+          var dh = Math.max(300, Math.min(H*0.55, 560));
+          var dw = src.sw * (dh/src.sh);
+          var cap = Math.min(W*0.50, 560);               // the two banners meet, never overlap
+          if(dw > cap){ var f = cap/dw; dw *= f; dh *= f; }
+          var oy = (H-dh)/2;
+          var amp = Math.min(30, dh*0.045);
+
+          // scale the frame once into the buffer, then slice that — far cheaper than
+          // pulling from the video element ~60 times per frame
+          if(bw !== Math.round(dw*dpr) || bh !== Math.round(dh*dpr)){
+            bw = Math.round(dw*dpr); bh = Math.round(dh*dpr);
+            buf.width = bw; buf.height = bh;
+          }
+          bx.setTransform(dpr,0,0,dpr,0,0);
+          bx.clearRect(0,0,dw,dh);
+          bx.drawImage(src.el, src.sx, src.sy, src.sw, src.sh, 0, 0, dw, dh);
+
+          for(var u=0; u<dw; u+=STRIP){                  // u = distance from the pole
+            var ph = u*0.0125 - t*0.0017;
+            var k  = u/dw;                               // 0 at the pole, 1 at the free edge
+            var dy = (Math.sin(ph)*0.76 + Math.sin(ph*0.47 + 1.7)*0.34) * amp * k;
+            var sw = Math.min(STRIP+1, dw-u);
+            var bufX = side > 0 ? u : (dw - u - sw);
+            var dx   = side > 0 ? u : (W - u - sw);
+            fx.drawImage(buf, bufX*dpr, 0, sw*dpr, bh, dx, oy+dy, sw, dh);
+            var shade = (Math.cos(ph)*0.5 + 0.5) * 0.30 * k;   // fabric shading
+            if(shade > 0.005){ fx.fillStyle = 'rgba(0,0,0,'+shade.toFixed(3)+')'; fx.fillRect(dx, oy+dy, sw, dh); }
+          }
+
+          // feather the edges away: soft top/bottom, dissolving to nothing toward the middle
+          fx.globalCompositeOperation = 'destination-out';
+          var gv = fx.createLinearGradient(0, oy, 0, oy+dh);
+          gv.addColorStop(0,'rgba(0,0,0,1)');    gv.addColorStop(0.24,'rgba(0,0,0,0)');
+          gv.addColorStop(0.76,'rgba(0,0,0,0)'); gv.addColorStop(1,'rgba(0,0,0,1)');
+          fx.fillStyle = gv; fx.fillRect(0,0,W,H);
+
+          var span = Math.min(dw, W);
+          var gh = fx.createLinearGradient(side > 0 ? 0 : W, 0, side > 0 ? span : W - span, 0);
+          gh.addColorStop(0,'rgba(0,0,0,.8)');   gh.addColorStop(0.06,'rgba(0,0,0,0)');  // soft outer edge
+          gh.addColorStop(0.22,'rgba(0,0,0,0)'); gh.addColorStop(1,'rgba(0,0,0,1)');     // dissolve inward
+          fx.fillStyle = gh; fx.fillRect(0,0,W,H);
+          fx.globalCompositeOperation = 'source-over';
+        }
+      };
+    }
+
+    var flags = [ Flag('flag',  videoSource,  1),      // the clip, down the left
+                  Flag('flagR', photoSource, -1) ];    // her photo, down the right
+
+    function size(){
+      dpr = Math.min(devicePixelRatio || 1, 2);
+      W = innerWidth; H = innerHeight;
+      flags.forEach(function(f){ f.resize(); });
+      sized = true;
+    }
+    function drawAll(t){ flags.forEach(function(f){ f.draw(t); }); }
+    function tick(ts){
+      requestAnimationFrame(tick);
+      if(ts - last < 32) return;                        // ~30fps is plenty for cloth
+      last = ts; drawAll(ts);
+    }
+    function boot(){
+      if(!sized) size();
+      if(reduce){ drawAll(900); return; }
+      if(!running){ running = true; requestAnimationFrame(tick); }
+    }
+    addEventListener('resize', function(){ size(); if(reduce) drawAll(900); });
+    boot();   // start now; each banner simply waits until its source is decodable
+  })();
 
   // --- confetti ---
   var cv = document.getElementById('confetti'), ctx = cv.getContext('2d'), parts=[], raf=null;
